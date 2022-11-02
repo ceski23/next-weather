@@ -28,7 +28,6 @@ const Container = styled.div`
   width: min(80%, 400px);
   margin: auto;
   height: 100%;
-  margin-top: 100px;
 `;
 
 const Title = styled.p`

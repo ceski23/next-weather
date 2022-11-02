@@ -29,7 +29,13 @@ declare module '@emotion/react' {
           text: string
         }
       }
-    }
+    };
+    breakpoints: {
+      sm: number;
+      md: number;
+      lg: number;
+      xl: number;
+    };
   }
 }
 
@@ -60,7 +66,15 @@ const theme: Theme = {
         text: '#24609b'
       },
     }
-  }
+  },
+  breakpoints: {
+    sm: 420,
+    md: 768,
+    lg: 1024,
+    xl: 1200,
+  },
 }
 
 export default theme;
+
+export type Breakpoint = keyof Theme["breakpoints"];

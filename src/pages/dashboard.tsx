@@ -2,12 +2,18 @@ import styled from '@emotion/styled';
 import Button from 'components/common/Button';
 import SearchInput from 'components/common/SearchInput';
 import InfoCard from 'components/weather/InfoCard';
+import { ProgressRing } from 'components/weather/ProgressRing';
+import { UVScale } from 'components/weather/UVScale';
 import WeatherCard from 'components/weather/WeatherCard';
-import WeatherPanel from 'components/weather/WeatherPanel';
+import { WeekWeatherPanel } from 'components/weather/WeekWeatherPanel';
+import { WindRose } from 'components/weather/WindRose';
+import { addDays, startOfWeek } from 'date-fns';
 import { useReverseSearchLocation, useSearchLocation } from 'lib/hooks/geocode';
 import { useSaveLocation } from 'lib/hooks/locations';
 import { useWeather } from 'lib/hooks/weather';
 import { useGeolocation } from 'lib/useGeolocation';
+import { calcProgress } from 'lib/utils/math';
+import { mediaQueryUp } from 'lib/utils/styles';
 import { formatLocationText, getWeatherDescription } from 'lib/utils/weather';
 import { useSession } from 'next-auth/react';
 import Image from 'next/future/image';
@@ -61,6 +67,8 @@ const Dashboard: AppPage = () => {
     });
   }
 
+  const [selectedWeekDate, setSelectedWeekDate] = useState(startOfWeek(new Date()));
+
   return (
     <Container>
       <MainColumn>
@@ -101,16 +109,51 @@ const Dashboard: AppPage = () => {
         )}
         {weather.status === 'success' && (
           <InfoGrid>
-            <InfoCard title='Wind' description='Today wind speed' value={currentWeather?.instant.details.wind_speed + weather.data.properties.meta.units.wind_speed} />
-            <InfoCard title='Precipitation amount' description='Today precipitation amount' value={currentWeather?.next_1_hours.details.precipitation_amount + weather.data.properties.meta.units.precipitation_amount} />
-            <InfoCard title='Pressure' description='Today pressure' value={currentWeather?.instant.details.air_pressure_at_sea_level + weather.data.properties.meta.units.air_pressure_at_sea_level} />
-            <InfoCard title='UV Index' description='Today UV index' value={String(currentWeather?.instant.details.ultraviolet_index_clear_sky ?? 0)} />
+            <InfoCard
+              title='Wind'
+              description='Today wind speed'
+              value={currentWeather?.instant.details.wind_speed + weather.data.properties.meta.units.wind_speed}
+              content={<WindRose direction={currentWeather?.instant.details.wind_from_direction} />}
+            />
+
+            <InfoCard
+              title='Precipitation amount'
+              description='Today precipitation amount'
+              value={currentWeather?.next_1_hours.details.precipitation_amount + weather.data.properties.meta.units.precipitation_amount}
+              content={<ProgressRing text='Low' progress={calcProgress(0, 500, Number(currentWeather?.next_1_hours.details.precipitation_amount))} />}
+            />
+
+            <InfoCard
+              title='Pressure'
+              description='Today pressure'
+              value={currentWeather?.instant.details.air_pressure_at_sea_level + weather.data.properties.meta.units.air_pressure_at_sea_level}
+              content={<ProgressRing text='Normal' progress={calcProgress(900, 1090, Number(currentWeather?.instant.details.air_pressure_at_sea_level))} />}
+            />
+
+            <InfoCard
+              title='UV Index'
+              description='Today UV index'
+              value={String(currentWeather?.instant.details.ultraviolet_index_clear_sky ?? 0)}
+              content={<UVScale text='Low' progress={30} />}
+            />
           </InfoGrid>
         )}
       </MainColumn>
 
       <RightSidebar>
-        <WeatherPanel />
+        <WeekWeatherPanel
+          weekStartDate={selectedWeekDate}
+          onWeekChange={setSelectedWeekDate}
+          data={[
+            { date: selectedWeekDate, temperature: 16, status: 'cloudy' },
+            { date: addDays(selectedWeekDate, 1), temperature: 16, status: 'clearsky_day' },
+            { date: addDays(selectedWeekDate, 2), temperature: 16, status: 'thunderstorms_rain' },
+            { date: addDays(selectedWeekDate, 3), temperature: 16, status: 'partly_cloudy' },
+            { date: addDays(selectedWeekDate, 4), temperature: 16, status: 'partly_cloudy' },
+            { date: addDays(selectedWeekDate, 5), temperature: 16, status: 'partly_cloudy' },
+            { date: addDays(selectedWeekDate, 6), temperature: 16, status: 'partly_cloudy' },
+          ]}
+        />
       </RightSidebar>
     </Container>
   );
@@ -120,25 +163,41 @@ export default Dashboard;
 
 const Container = styled.div`
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  
+  ${mediaQueryUp('xl')} {
+    flex-direction: row;
+  }
 `;
 
 const MainColumn = styled.div`
-  padding: 35px 50px;
+  padding: 15px;
   flex: 1;
+
+  ${mediaQueryUp('sm')} {
+    padding: 35px 50px;
+  }
 `;
 
 const RightSidebar = styled.div`
-  height: 100vh;
   border-left: 2px solid ${props => props.theme.colors.border};
-  width: 400px;
+  width: 100%;
+  height: 100%;
+
+  ${mediaQueryUp('xl')} {
+    width: 400px;
+  }
 `;
 
 const InfoGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 30px;
   margin-top: 30px;
+
+  ${mediaQueryUp('lg')} {
+    grid-template-columns: 1fr 1fr;
+  }
 `;
 
 const Header = styled.div`

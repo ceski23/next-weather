@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
 import Sidebar from 'components/layout/Sidebar';
+import { mediaQueryUp } from 'lib/utils/styles';
 import { FC, PropsWithChildren } from 'react';
 
 const Layout: FC<PropsWithChildren> = ({ children }) => (
@@ -12,10 +13,16 @@ const Layout: FC<PropsWithChildren> = ({ children }) => (
 export default Layout;
 
 const Content = styled.div`
-  margin-left: 260px;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: auto;
+  padding-bottom: 64px;
+
+  ${mediaQueryUp('md')} {
+    margin-left: 260px;
+    padding-bottom: 0;
+  }
 `;
 
 const MainSidebar = styled(Sidebar)`
@@ -23,6 +30,11 @@ const MainSidebar = styled(Sidebar)`
   left: 0;
   top: 0;
   bottom: 0;
-  width: 260px;
-  height: 100vh;
+  width: 0;
+  height: 0;
+
+  ${mediaQueryUp('md')} {
+    width: 260px;
+    height: 100vh;
+  }
 `;

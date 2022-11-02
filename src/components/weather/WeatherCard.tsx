@@ -7,6 +7,7 @@ import Barometer from '@bybas/weather-icons/production/line/svg/barometer.svg';
 import { formatDistanceToNow } from 'date-fns';
 import bg from 'assets/morning_background.png';
 import Skeleton from 'react-loading-skeleton';
+import { mediaQueryUp } from 'lib/utils/styles';
 
 interface WeatherCardProps {
   location?: string;
@@ -31,9 +32,12 @@ const WeatherCard: FC<WeatherCardProps> & { Placeholder: FC } = ({
     <Container>
       <Info>
         <Top>
-          {location ? (
-            <Location><SmallIcon as={MapPin} /> {location}</Location>
-          ) : <Location />}
+          {location && (
+            <Location>
+              <SmallIcon as={MapPin} />
+              <LocationText>{location}</LocationText>
+            </Location>
+          )}
           <DateText>{formatDistanceToNow(updateDate, { addSuffix: true })}</DateText>
         </Top>
         
@@ -77,10 +81,14 @@ const Container = styled.div`
   color: ${props => props.theme.colors.time.morning.text};
   border-radius: 10px;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   padding: 20px;
   gap: 20px;
   background-image: url(${bg.src});
+
+  ${mediaQueryUp('lg')} {
+    flex-direction: row;
+  }
 `;
 
 const Info = styled.div`
@@ -103,6 +111,7 @@ const Top = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  gap: 20px;
 `;
 
 const Middle = styled.div`
@@ -174,4 +183,8 @@ const TemperatureHeading = styled.p`
   padding: 15px 20px;
   font-weight: 600;
   margin: 0;
+`;
+
+const LocationText = styled.span`
+  flex: 1;
 `;

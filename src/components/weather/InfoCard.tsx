@@ -1,14 +1,15 @@
 import styled from '@emotion/styled';
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import Skeleton from 'react-loading-skeleton';
 
 interface InfoCardProps {
   title: string
   description: string
   value: string
+  content?: ReactNode
 }
 
-const InfoCard: FC<InfoCardProps> & { Placeholder: FC } = ({ description, title, value }) => {
+const InfoCard: FC<InfoCardProps> & { Placeholder: FC } = ({ description, title, value, content }) => {
   return (
     <Container>
       <Info>
@@ -16,6 +17,9 @@ const InfoCard: FC<InfoCardProps> & { Placeholder: FC } = ({ description, title,
         <Description>{description}</Description>
         <Value>{value}</Value>
       </Info>
+      <Content>
+        {content}
+      </Content>
     </Container>
   );
 };
@@ -35,11 +39,16 @@ const Container = styled.div`
   color: ${props => props.theme.colors.text};
   padding: 15px 20px;
   border-radius: 10px;
+  justify-content: space-between;
+  min-height: 120px;
+  gap: 20px;
+  align-items: center;
 `;
 
 const Info = styled.div`
   display: flex;
   flex-direction: column;
+  flex: 1;
 `;
 
 const Title = styled.p`
@@ -59,4 +68,10 @@ const Value = styled.p`
   margin: 0;
   font-weight: 600;
   font-size: 18px;
+`;
+
+const Content = styled.div`
+  display: flex;
+  width: 90px;
+  height: 90px;
 `;

@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
 import ActiveLink from 'components/common/ActiveLink';
 import Logo from 'components/common/Logo';
+import { mediaQueryUp } from 'lib/utils/styles';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { FC } from 'react';
 import { Grid, Heart, Icon, LogOut, LogIn, Map, Settings } from 'react-feather';
@@ -29,9 +30,9 @@ const Sidebar: FC<Styleable> = ({ className }) => {
       <Navigation>
         {navigationItems.map(({href, text, Icon }) => (
           <ActiveLink href={href} key={text} passHref activeClassName='active'>
-            <NavItem>
+            <NavItem title={text}>
               <NavIcon as={Icon} />
-              {text}
+              <NavText>{text}</NavText>
             </NavItem>
           </ActiveLink>
         ))}
@@ -69,16 +70,45 @@ const Container = styled.div`
 const AppLogo = styled(Logo)`
   align-self: center;
   margin: 30px auto;
+  display: none;
+
+  ${mediaQueryUp('md')} {
+    display: inherit;
+  }
 `;
 
 const Navigation = styled.nav`
   display: flex;
-  flex-direction: column;
   gap: 20px;
+  background-color: ${props => props.theme.colors.background};
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  flex-direction: row;
+  justify-content: space-around;
+  padding: 10px;
+  box-shadow: 0 0 10px ${props => props.theme.colors.border};
+  z-index: 10;
+
+  ${mediaQueryUp('md')} {
+    flex-direction: column;
+    position: static;
+    padding: unset;
+    box-shadow: none;
+  }
 `;
 
 const NavIcon = styled.svg`
   color: ${props => props.theme.colors.textAlt};
+`;
+
+const NavText = styled.span`
+  display: none;
+
+  ${mediaQueryUp('md')} {
+    display: block;
+  }
 `;
 
 const NavItem = styled.a`
@@ -96,29 +126,38 @@ const NavItem = styled.a`
 
   &.active {
     color: ${props => props.theme.colors.text};
+    background-color: ${props => props.theme.colors.backgroundAlt};
+    border-radius: 10px;
 
     ${NavIcon} {
       color: ${props => props.theme.colors.primaryDark};
     }
+  }
 
-    &::before {
-      content: '';
-      display: block;
-      position: absolute;
-      width: 2px;
-      height: calc(100% + 20px);
-      background-color: ${props => props.theme.colors.background};
-      right: -2px;
-    }
+  ${mediaQueryUp('md')} {
+    &.active {
+      background: none;
+      border-radius: 10px;
 
-    &::after {
-      content: '';
-      display: block;
-      position: absolute;
-      width: 2px;
-      height: 100%;
-      background-color: ${props => props.theme.colors.primaryDark};
-      right: -2px;
+      &::before {
+        content: '';
+        display: block;
+        position: absolute;
+        width: 2px;
+        height: calc(100% + 20px);
+        background-color: ${props => props.theme.colors.background};
+        right: -2px;
+      }
+
+      &::after {
+        content: '';
+        display: block;
+        position: absolute;
+        width: 2px;
+        height: 100%;
+        background-color: ${props => props.theme.colors.primaryDark};
+        right: -2px;
+      }
     }
   }
 `;
@@ -126,4 +165,9 @@ const NavItem = styled.a`
 const LogoutContainer = styled.div`
   margin-top: auto;
   margin: auto 0 20px;
+  display: none;
+
+  ${mediaQueryUp('md')} {
+    display: block;
+  }
 `;
