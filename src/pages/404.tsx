@@ -10,9 +10,9 @@ const Page404: FC = () => {
   return (
     <Container>
       <ThunderstormIcon width={300} />
-      <Title>Nie znaleziono takiej strony</Title>
-      <Text>Nie udało nam się znaleźć tej strony. Być może link jest uszkodzony lub strona została przeniesiona.</Text>
-      <Button onClick={() => router.back()}>Powrót</Button>
+      <Title>Page not found</Title>
+      <Text>We could not find this page. Perhaps the link is broken or the page has been moved.</Text>
+      <Button onClick={() => router.back()}>Go back</Button>
     </Container>
   );
 };

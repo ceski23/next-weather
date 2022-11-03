@@ -8,6 +8,9 @@ import theme from 'styles/theme';
 import { Hydrate, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from 'next-auth/react';
 import { Session } from 'next-auth';
+import { setDefaultOptions } from 'date-fns';
+
+setDefaultOptions({ weekStartsOn: 1 })
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type AppPage<Props = {}, InitialProps = Props> = NextPage<Props, InitialProps> & {
