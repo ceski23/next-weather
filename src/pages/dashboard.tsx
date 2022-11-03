@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import Button from 'components/common/Button';
 import SearchInput from 'components/common/SearchInput';
 import InfoCard from 'components/weather/InfoCard';
@@ -7,67 +8,49 @@ import { UVScale } from 'components/weather/UVScale';
 import WeatherCard from 'components/weather/WeatherCard';
 import { WeekWeatherPanel } from 'components/weather/WeekWeatherPanel';
 import { WindRose } from 'components/weather/WindRose';
-import { addDays, startOfWeek } from 'date-fns';
-import { useReverseSearchLocation, useSearchLocation } from 'lib/hooks/geocode';
-import { useSaveLocation } from 'lib/hooks/locations';
-import { useWeather } from 'lib/hooks/weather';
-import { useGeolocation } from 'lib/useGeolocation';
+import { addDays, endOfWeek, format, startOfWeek, subDays } from 'date-fns';
+import { saveLocationMutation } from 'lib/api/queries/locations';
+import { weatherQuery } from 'lib/api/queries/weather';
+import { useLocation } from 'lib/hooks/location';
 import { calcProgress } from 'lib/utils/math';
 import { mediaQueryUp } from 'lib/utils/styles';
-import { formatLocationText, getWeatherDescription } from 'lib/utils/weather';
+import { getWeatherDescription, transformCurrentWeather, transformWeeklyWeather } from 'lib/utils/weather';
 import { useSession } from 'next-auth/react';
 import Image from 'next/future/image';
 import { AppPage } from 'pages/_app';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
+
+
 
 const Dashboard: AppPage = () => {
   const { data: session } = useSession();  
-  
   const [query, setQuery] = useState('');
-  const manualLocation = useSearchLocation(query);
+  const { coords, locationText } = useLocation(query);
+  const { mutate: saveLocation } = useMutation(saveLocationMutation());
+  const [selectedWeekDates, setSelectedWeekDates] = useState({
+    start: startOfWeek(new Date()),
+    end: endOfWeek(new Date())
+  });
 
-  const geolocation = useGeolocation();
+  const todayWeather = useQuery(weatherQuery(coords));
+  const currentWeather = transformCurrentWeather(todayWeather.data);
+  const weatherUnits = todayWeather.data?.hourly_units;
 
-  const coords = useMemo(() => {
-    if (query.length === 0) {
-      return geolocation.location ? {
-        lat: geolocation.location.coords.latitude,
-        lon: geolocation.location.coords.longitude
-      } : undefined;
-    }
-
-    return manualLocation.data ? {
-      lat: Number(manualLocation.data.lat),
-      lon: Number(manualLocation.data.lon)
-    } : undefined;
-  }, [geolocation.location, manualLocation.data, query.length]);
-
-  const location = useReverseSearchLocation(coords);
-
-  const locationText = useMemo(() => {
-    if (query.length === 0) {
-      return formatLocationText(location.data?.address) ?? location.data?.display_name
-    }
-
-    return manualLocation.data?.display_name;
-  }, [location.data, manualLocation.data?.display_name, query.length]);
-
-  const weather = useWeather(coords);
-  const currentWeather = weather.data?.properties.timeseries[0].data;
-
-  const { mutate: saveLocation } = useSaveLocation();
+  const weeklyWeather = useQuery(weatherQuery(coords ? {
+    ...coords,
+    start_date: format(selectedWeekDates.start, 'yyyy-MM-dd'),
+    end_date: format(selectedWeekDates.end, 'yyyy-MM-dd')
+  } : undefined));
 
   const handleSaveLocation = () => {
     if (!locationText || !coords) return;
 
     saveLocation({
       name: locationText,
-      lat: coords.lat,
-      lon: coords.lon
+      lat: coords.latitude,
+      lon: coords.longitude
     });
   }
-
-  const [selectedWeekDate, setSelectedWeekDate] = useState(startOfWeek(new Date()));
 
   return (
     <Container>
@@ -79,17 +62,17 @@ const Dashboard: AppPage = () => {
           )}
         </Header>
 
-        {weather.status === 'loading' && <WeatherCard.Placeholder />}
-        {weather.status === 'success' && (
+        {todayWeather.status === 'loading' && <WeatherCard.Placeholder />}
+        {currentWeather && weatherUnits && (
           <WeatherCard
             key={query}
             location={locationText}
-            humidity={currentWeather?.instant.details.relative_humidity + weather.data.properties.meta.units.relative_humidity}
-            pressure={currentWeather?.instant.details.air_pressure_at_sea_level + weather.data.properties.meta.units.air_pressure_at_sea_level}
-            updateDate={new Date(weather.data.properties.meta.updated_at)}
-            windSpeed={currentWeather?.instant.details.wind_speed + weather.data.properties.meta.units.wind_speed}
-            temperature={String(currentWeather?.instant.details.air_temperature)}
-            description={getWeatherDescription(currentWeather?.next_1_hours.summary.symbol_code)}
+            humidity={currentWeather.relativehumidity_2m + weatherUnits.relativehumidity_2m}
+            pressure={currentWeather.surface_pressure + weatherUnits.surface_pressure}
+            updateDate={new Date(currentWeather.time)}
+            windSpeed={currentWeather.windspeed_10m + weatherUnits.windspeed_10m}
+            temperature={currentWeather.apparent_temperature?.toString()}
+            description={getWeatherDescription(currentWeather.weathercode)}
           />
         )}
 
@@ -99,7 +82,7 @@ const Dashboard: AppPage = () => {
           </div>
         )}
 
-        {weather.status === 'loading' && (
+        {todayWeather.status === 'loading' && (
           <InfoGrid>
             <InfoCard.Placeholder />
             <InfoCard.Placeholder />
@@ -107,53 +90,49 @@ const Dashboard: AppPage = () => {
             <InfoCard.Placeholder />
           </InfoGrid>
         )}
-        {weather.status === 'success' && (
+        {currentWeather && weatherUnits && (
           <InfoGrid>
             <InfoCard
               title='Wind'
               description='Today wind speed'
-              value={currentWeather?.instant.details.wind_speed + weather.data.properties.meta.units.wind_speed}
-              content={<WindRose direction={currentWeather?.instant.details.wind_from_direction} />}
+              value={currentWeather.windspeed_10m + weatherUnits.windspeed_10m}
+              content={<WindRose direction={currentWeather.windspeed_10m ?? 0} />}
             />
 
             <InfoCard
               title='Precipitation amount'
               description='Today precipitation amount'
-              value={currentWeather?.next_1_hours.details.precipitation_amount + weather.data.properties.meta.units.precipitation_amount}
-              content={<ProgressRing text='Low' progress={calcProgress(0, 500, Number(currentWeather?.next_1_hours.details.precipitation_amount))} />}
+              value={currentWeather.precipitation + weatherUnits.precipitation}
+              content={<ProgressRing text='Low' progress={calcProgress(0, 500, Number(0))} />}
             />
 
             <InfoCard
               title='Pressure'
               description='Today pressure'
-              value={currentWeather?.instant.details.air_pressure_at_sea_level + weather.data.properties.meta.units.air_pressure_at_sea_level}
-              content={<ProgressRing text='Normal' progress={calcProgress(900, 1090, Number(currentWeather?.instant.details.air_pressure_at_sea_level))} />}
+              value={currentWeather.surface_pressure + weatherUnits.surface_pressure}
+              content={<ProgressRing text='Normal' progress={calcProgress(900, 1090, currentWeather.surface_pressure ?? 0)} />}
             />
 
             <InfoCard
               title='UV Index'
               description='Today UV index'
-              value={String(currentWeather?.instant.details.ultraviolet_index_clear_sky ?? 0)}
-              content={<UVScale text='Low' progress={30} />}
+              value={'0'}
+              content={<UVScale text='Low' progress={0} />}
             />
           </InfoGrid>
         )}
       </MainColumn>
 
       <RightSidebar>
-        <WeekWeatherPanel
-          weekStartDate={selectedWeekDate}
-          onWeekChange={setSelectedWeekDate}
-          data={[
-            { date: selectedWeekDate, temperature: 16, status: 'cloudy' },
-            { date: addDays(selectedWeekDate, 1), temperature: 16, status: 'clearsky_day' },
-            { date: addDays(selectedWeekDate, 2), temperature: 16, status: 'thunderstorms_rain' },
-            { date: addDays(selectedWeekDate, 3), temperature: 16, status: 'partly_cloudy' },
-            { date: addDays(selectedWeekDate, 4), temperature: 16, status: 'partly_cloudy' },
-            { date: addDays(selectedWeekDate, 5), temperature: 16, status: 'partly_cloudy' },
-            { date: addDays(selectedWeekDate, 6), temperature: 16, status: 'partly_cloudy' },
-          ]}
-        />
+        {weeklyWeather.status === 'success' && (
+          <WeekWeatherPanel
+            weekDates={selectedWeekDates}
+            onWeekChange={setSelectedWeekDates}
+            data={transformWeeklyWeather(weeklyWeather.data, [6, 12, 18, 23])}
+            min={subDays(new Date(), 148)}
+            max={addDays(new Date(), 8)}
+          />
+        )}
       </RightSidebar>
     </Container>
   );

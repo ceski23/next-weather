@@ -1,107 +1,109 @@
+import { format } from 'date-fns';
 import kyUniversal from 'ky-universal';
 
 const weatherApi = kyUniversal.create({
-  prefixUrl: 'https://api.met.no/',
-  headers: {
-    'User-Agent': 'NextWeather'
+  prefixUrl: 'https://api.open-meteo.com/v1/',
+  hooks: {
+    beforeRequest: [
+      // OpenMeteo API don't recognize serialized commas in search params
+      req => new Request(req.url.replaceAll('%2C', ','), req)
+    ]
   }
 });
 
-type TimeVariant = 'day' | 'night' | 'polartwilight';
-export type VariableSymbol = 'clearsky' | 'fair' | 'heavyrainshowers' | 'heavyrainshowersandthunder' | 'heavysleetshowers' |
-                       'heavysleetshowersandthunder' | 'heavysnowshowers' | 'heavysnowshowersandthunder' | 'lightrainshowers' |
-                       'lightrainshowersandthunder' | 'lightsleetshowers' | 'lightsnowshowers' | 'lightssleetshowersandthunder' |
-                       'lightssnowshowersandthunder' | 'partlycloudy' | 'rainshowers' | 'rainshowersandthunder' | 'sleetshowers' |
-                       'sleetshowersandthunder' | 'snowshowers' | 'snowshowersandthunder';
-export type StaticSymbol = 'cloudy' | 'fog' | 'heavyrain' | 'heavyrainandthunder' | 'heavysleet' | 'heavysleetandthunder' | 'heavysnow' |
-                     'heavysnowandthunder' | 'lightrain' | 'lightrainandthunder' | 'lightsleet' | 'lightsleetandthunder' | 'lightsnow' |
-                     'lightsnowandthunder' | 'rain' | 'rainandthunder' | 'sleet' | 'sleetandthunder' | 'snow' | 'snowandthunder';
+export enum WeatherCode {
+  CLEAR_SKY = 0,
+  MAINLY_CLEAR = 1,
+  PARTLY_CLOUDY = 2,
+  OVERCAST = 3,
+  FOG = 45,
+  RIME_FOG = 48,
+  LIGHT_DRIZZLE = 51,
+  MODERATE_DRIZZLE = 53,
+  DENSE_DRIZZLE = 55,
+  LIGHT_FREEZING_DRIZZLE = 56,
+  DENSE_FREEZING_DRIZZLE = 57,
+  SLIGHT_RAIN = 61,
+  MODERATE_RAIN = 63,
+  HEAVY_RAIN = 65,
+  LIGHT_FREEZING_RAIN = 66,
+  HEAVY_FREEZING_RAIN = 67,
+  SLIGHT_SNOW = 71,
+  MODERATE_SNOW = 73,
+  HEAVY_SNOW = 75,
+  SNOW_GRAINS = 77,
+  SLIGHT_RAIN_SHOWERS = 80,
+  MODERATE_RAIN_SHOWERS = 81,
+  VIOLENT_RAIN_SHOWERS = 82,
+  SLIGHT_SNOW_SHOWERS = 85,
+  HEAVY_SNOW_SHOWERS = 86,
+  THUNDERSTORM = 95,
+  THUNDERSTORM_WITH_SLIGHT_HAIL = 96,
+  THUNDERSTORM_WITH_HEAVY_HAIL = 99,
+}
 
-export type SymbolCode = `${VariableSymbol}_${TimeVariant}` | StaticSymbol;
+export interface DailyWeather {
+  time: Array<string>
+  apparent_temperature_min: Array<string>
+  apparent_temperature_max: Array<string>
+  weathercode: Array<WeatherCode>
+}
 
-interface WeatherData {
-  instant: {
-    details: {
-      air_pressure_at_sea_level: number,
-      air_temperature: number,
-      cloud_area_fraction: number,
-      cloud_area_fraction_high: number,
-      cloud_area_fraction_low: number,
-      cloud_area_fraction_medium: number,
-      dew_point_temperature: number,
-      fog_area_fraction: number,
-      relative_humidity: number,
-      ultraviolet_index_clear_sky: number,
-      wind_from_direction: number,
-      wind_speed: number
-    }
-  },
-  next_12_hours: {
-    summary: {
-      symbol_code: SymbolCode
-    }
-  },
-  next_1_hours: {
-    summary: {
-      symbol_code: SymbolCode
-    },
-    details: {
-      precipitation_amount: number
-    }
-  },
-  next_6_hours: {
-    summary: {
-      symbol_code: SymbolCode
-    },
-    details: {
-      precipitation_amount: number,
-      air_temperature_max: number,
-      air_temperature_min: number
-    }
-  }
+export interface HourlyWeather {
+  time: Array<string>
+  apparent_temperature: Array<number | null>
+  weathercode: Array<WeatherCode | null>
+  relativehumidity_2m: Array<number | null>
+  surface_pressure: Array<number | null>
+  windspeed_10m: Array<number | null>
+  winddirection_10m: Array<number | null>
+  precipitation: Array<number | null>
 }
 
 export interface WeatherResponse {
-  type: 'Feature',
-  geometry: {
-    type: 'Point',
-    coordinates: [number, number, number]
-  },
-  properties: {
-    meta: {
-      updated_at: string,
-      units: {
-        air_pressure_at_sea_level: "hPa",
-        air_temperature: "celsius",
-        air_temperature_max: "celsius",
-        air_temperature_min: "celsius",
-        cloud_area_fraction: "%",
-        cloud_area_fraction_high: "%",
-        cloud_area_fraction_low: "%",
-        cloud_area_fraction_medium: "%",
-        dew_point_temperature: "celsius",
-        fog_area_fraction: "%",
-        precipitation_amount: "mm",
-        relative_humidity: "%",
-        ultraviolet_index_clear_sky: "1",
-        wind_from_direction: "degrees",
-        wind_speed: "m/s"
-      }
-    },
-    timeseries: Array<{
-      time: string,
-      data: WeatherData
-    }>
-  }
+  latitude: number
+  longitude: number
+  generationtime_ms: number
+  utc_offset_seconds: number
+  timezone: string
+  timezone_abbreviation: string
+  elevation: number
+  hourly_units: Record<keyof HourlyWeather, string>
+  hourly: HourlyWeather
+}
+
+export type HourlyWeatherData = {
+  [key in keyof WeatherResponse['hourly']]: WeatherResponse['hourly'][key][number]
+}
+
+export interface WeatherErrorResponse {
+  reason: string
+  error: true
 }
 
 export type FetchWeatherParams = {
-  lat: number
-  lon: number
+  latitude: number
+  longitude: number
+  start_date?: string
+  end_date?: string
 }
 
 export const fetchWeather = (params?: FetchWeatherParams) => (
-  weatherApi.get('weatherapi/locationforecast/2.0/compact', {
-    searchParams: params
+  weatherApi.get('forecast', {
+    searchParams: {
+      start_date: format(new Date(), 'yyyy-MM-dd'),
+      end_date: format(new Date(), 'yyyy-MM-dd'),
+      ...params,
+      hourly: [
+        'apparent_temperature',
+        'weathercode',
+        'relativehumidity_2m',
+        'surface_pressure',
+        'windspeed_10m',
+        'winddirection_10m',
+        'precipitation'
+      ].join(','),
+      timezone: 'auto',
+    },
   }).then(res => res.json<WeatherResponse>())
 );

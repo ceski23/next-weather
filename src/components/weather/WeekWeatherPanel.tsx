@@ -3,65 +3,84 @@ import { FC, useState } from 'react';
 import { Styleable } from 'styles/styles';
 import LeftChevronIcon from 'assets/chevron-left.svg';
 import RightChevronIcon from 'assets/chevron-right.svg';
-import { addDays, addHours, endOfWeek, format, isSameMonth, isThisWeek, startOfWeek, subDays } from 'date-fns';
+import { addDays, endOfWeek, format, isAfter, isBefore, isSameDay, isSameMonth, isThisWeek, startOfWeek, subDays } from 'date-fns';
 import { DayWeather } from 'components/weather/DayWeather';
+import { HourlyWeatherData } from 'lib/api/weather';
 
-type TempWeekWeather = Array<{
-  date: Date;
-  temperature: number;
-  status: string;
-}>
+export interface WeekDates {
+  start: Date;
+  end: Date;
+}
 
 interface WeekWeatherPanelProps extends Styleable {
-  weekStartDate: Date;
-  data: TempWeekWeather;
-  onWeekChange: (weekStartDate: Date) => void;
+  weekDates: WeekDates;
+  data: Record<string, HourlyWeatherData[]>;
+  onWeekChange: (weekDates: WeekDates) => void;
+  min: Date;
+  max: Date;
 }
 
-const formatTitle = (date: Date) => {
-  if (isThisWeek(date)) return 'This week';
+const formatTitle = (dates: WeekDates) => {
+  if (isThisWeek(dates.start)) return 'This week';
+  if (isSameMonth(dates.start, dates.end)) {
+    return `${format(dates.start, 'dd')}-${format(dates.end, 'dd')} ${format(dates.start, 'MMMM')}`;
+  }
   
-  const start = startOfWeek(date);
-  const end = endOfWeek(date);
-  if (isSameMonth(start, end)) return `${format(start, 'dd')}-${format(end, 'dd')} ${format(date, 'MMMM')}`;
-  
-  return `${format(start, 'dd')} ${format(start, 'MMM')} - ${format(end, 'dd')} ${format(end, 'MMM')}`;
+  return `${format(dates.start, 'dd')} ${format(dates.start, 'MMM')} - ${format(dates.end, 'dd')} ${format(dates.end, 'MMM')}`;
 }
 
-export const WeekWeatherPanel: FC<WeekWeatherPanelProps> = ({ weekStartDate, data, className, onWeekChange }) => {
-  const [expandedDay, setExpandedDay] = useState<number>();
+export const WeekWeatherPanel: FC<WeekWeatherPanelProps> = ({ weekDates, data, className, onWeekChange, min, max }) => {
+  const [expandedDay, setExpandedDay] = useState<string>();
 
   const selectPrevWeek = () => {
-    const nextDate = startOfWeek(subDays(startOfWeek(weekStartDate), 1));
-    onWeekChange(nextDate);
+    let nextStart = startOfWeek(subDays(startOfWeek(weekDates.start), 1));
+    if (isBefore(nextStart, min)) nextStart = min;
+    const nextEnd = endOfWeek(nextStart);
+    
+    onWeekChange({ start: nextStart, end: nextEnd });
   }
   
   const selectNextWeek = () => {
-    const nextDate = addDays(endOfWeek(weekStartDate), 1);
-    onWeekChange(nextDate);
+    let nextEnd = endOfWeek(addDays(endOfWeek(weekDates.end), 1));
+    if (isAfter(nextEnd, max)) nextEnd = max;
+    const nextStart = startOfWeek(nextEnd);
+
+    onWeekChange({ start: nextStart, end: nextEnd });
   }
 
-  const handleDayClick = (idx: number) => {
-    if (expandedDay === idx) setExpandedDay(undefined);
-    else setExpandedDay(idx);
+  const handleDayClick = (date: string) => {
+    if (expandedDay === date) setExpandedDay(undefined);
+    else setExpandedDay(date);
   }
 
   return (
     <Container className={className}>
       <Header>
-        <ArrowButton onClick={selectPrevWeek}><ArrowIcon as={LeftChevronIcon} /></ArrowButton>
-        <Title>{formatTitle(weekStartDate)}</Title>
-        <ArrowButton onClick={selectNextWeek}><ArrowIcon as={RightChevronIcon} /></ArrowButton>
+        <ArrowButton
+          onClick={selectPrevWeek}
+          disabled={isSameDay(weekDates.start, min)}
+        >
+          <ArrowIcon as={LeftChevronIcon} />
+        </ArrowButton>
+        
+        <Title>{formatTitle(weekDates)}</Title>
+        
+        <ArrowButton
+          onClick={selectNextWeek}
+          disabled={isSameDay(weekDates.end, max)}
+        >
+          <ArrowIcon as={RightChevronIcon} />
+        </ArrowButton>
       </Header>
 
       <DaysContainer>
-        {data.map((weather, idx) => (
-          <DayWeather weather={weather} detailedWeather={[
-            { ...weather, time: new Date() },
-            { ...weather, time: addHours(new Date(), 2) },
-            { ...weather, time: addHours(new Date(), 4) },
-            { ...weather, time: addHours(new Date(), 6) },
-          ]} key={weather.date.getTime()} showDetailed={expandedDay === idx} onClick={() => handleDayClick(idx)} />
+        {Object.entries(data).map(([day, weather]) => (
+          <DayWeather
+            key={day}
+            weather={weather}
+            showDetailed={expandedDay === day}
+            onClick={() => handleDayClick(day)}
+          />
         ))}
       </DaysContainer>
     </Container>
@@ -93,6 +112,11 @@ const ArrowButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
 `;
 
 const Title = styled.p`

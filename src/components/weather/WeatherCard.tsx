@@ -15,7 +15,7 @@ interface WeatherCardProps {
   pressure: string;
   humidity: string;
   windSpeed: string;
-  temperature: string;
+  temperature?: string;
   description?: string;
 }
 
@@ -41,10 +41,12 @@ const WeatherCard: FC<WeatherCardProps> & { Placeholder: FC } = ({
           <DateText>{formatDistanceToNow(updateDate, { addSuffix: true })}</DateText>
         </Top>
         
-        <Middle>
-          <Temperature>{temperature}<Degrees>°</Degrees></Temperature>
-          {description && <WeatherDescription>{description}</WeatherDescription>}
-        </Middle>
+        {temperature && (
+          <Middle>
+            <Temperature>{temperature}<Degrees>°</Degrees></Temperature>
+            {description && <WeatherDescription>{description}</WeatherDescription>}
+          </Middle>
+        )}
 
         <Bottom>
           <Measurement>
@@ -132,6 +134,7 @@ const Bottom = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  gap: 20px;
 `;
 
 const WeatherDescription = styled.p`

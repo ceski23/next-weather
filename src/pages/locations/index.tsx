@@ -1,6 +1,5 @@
 import styled from '@emotion/styled';
-import { dehydrate, QueryClient } from '@tanstack/react-query';
-import { locationKeys, useSavedLocations } from 'lib/hooks/locations';
+import { dehydrate, QueryClient, useQuery } from '@tanstack/react-query';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { unstable_getServerSession } from 'next-auth';
 import Link from 'next/link';
@@ -8,6 +7,7 @@ import { authOptions } from 'pages/api/auth/[...nextauth]';
 import { AppPage } from 'pages/_app';
 import Skeleton from 'react-loading-skeleton';
 import prisma from 'lib/prisma';
+import { locationKeys, savedLocationsQuery } from 'lib/api/queries/locations';
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
     const session = await unstable_getServerSession(req, res, authOptions);
@@ -33,7 +33,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   }
 
 const SavedLocationsPage: AppPage<InferGetServerSidePropsType<typeof getServerSideProps>> = () => {
-  const savedLocations = useSavedLocations();
+  const savedLocations = useQuery(savedLocationsQuery());
 
   return (
     <Container>

@@ -1,10 +1,9 @@
 import { SavedLocation } from '@prisma/client';
-import { dehydrate, QueryClient } from '@tanstack/react-query';
+import { dehydrate, QueryClient, useQuery } from '@tanstack/react-query';
 import WeatherCard from 'components/weather/WeatherCard';
-import { fetchWeather } from 'lib/api/weather';
-import { useWeather, weatherKeys } from 'lib/hooks/weather';
+import { weatherQuery } from 'lib/api/queries/weather';
 import prisma from 'lib/prisma';
-import { getWeatherDescription } from 'lib/utils/weather';
+import { getWeatherDescription, transformCurrentWeather } from 'lib/utils/weather';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { unstable_getServerSession } from 'next-auth/next';
 import { authOptions } from 'pages/api/auth/[...nextauth]';
@@ -35,13 +34,11 @@ export const getServerSideProps: GetServerSideProps<SavedLocationProps, Location
 
   if (!savedLocation) return { notFound: true }
 
-  const coords = {
-    lat: savedLocation.lat,
-    lon: savedLocation.lon
-  };
-
   const queryClient = new QueryClient();
-  await queryClient.prefetchQuery(weatherKeys.byLocation(coords), () => fetchWeather(coords));
+  await queryClient.prefetchQuery(weatherQuery({
+    latitude: savedLocation.lat,
+    longitude: savedLocation.lon
+  }));
   
   return {
     props: {
@@ -52,24 +49,25 @@ export const getServerSideProps: GetServerSideProps<SavedLocationProps, Location
 }
 
 const SavedLocationPage: AppPage<InferGetServerSidePropsType<typeof getServerSideProps>> = ({ location }) => {
-  const weather = useWeather({
-    lat: location.lat,
-    lon: location.lon
-  });
-  const currentWeather = weather.data?.properties.timeseries[0].data;
+  const weather = useQuery(weatherQuery({
+    latitude: location.lat,
+    longitude: location.lon
+  }));
+  const currentWeather = transformCurrentWeather(weather.data);
+  const weatherUnits = weather.data?.hourly_units;
 
   return (
     <>
       {weather.status === 'loading' && <WeatherCard.Placeholder />}
-      {weather.status === 'success' && (
+      {currentWeather && weatherUnits && (
         <WeatherCard
           location={location.name}
-          humidity={currentWeather?.instant.details.relative_humidity + weather.data.properties.meta.units.relative_humidity}
-          pressure={currentWeather?.instant.details.air_pressure_at_sea_level + weather.data.properties.meta.units.air_pressure_at_sea_level}
-          updateDate={new Date(weather.data.properties.meta.updated_at)}
-          windSpeed={currentWeather?.instant.details.wind_speed + weather.data.properties.meta.units.wind_speed}
-          temperature={String(currentWeather?.instant.details.air_temperature)}
-          description={getWeatherDescription(currentWeather?.next_1_hours.summary.symbol_code)}
+          humidity={currentWeather.relativehumidity_2m + weatherUnits.relativehumidity_2m}
+          pressure={currentWeather.surface_pressure + weatherUnits.surface_pressure}
+          updateDate={new Date(currentWeather.time)}
+          windSpeed={currentWeather.windspeed_10m + weatherUnits.windspeed_10m}
+          temperature={currentWeather.apparent_temperature?.toString()}
+          description={getWeatherDescription(currentWeather.weathercode)}
         />
       )}
     </>

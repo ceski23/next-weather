@@ -1,12 +1,14 @@
 import styled from '@emotion/styled';
 import { format, isThisHour } from 'date-fns';
+import { WeatherCode } from 'lib/api/weather';
+import { isDay } from 'lib/utils/date';
 import { getWeatherIcon } from 'lib/utils/weather';
 import { FC } from 'react';
 
 interface CompactDayWeatherProps {
   time: Date;
-  temperature: number;
-  status: string;
+  temperature: number | null;
+  status: WeatherCode | null;
 }
 
 const formatTime = (time: Date) => {
@@ -18,8 +20,8 @@ export const CompactDayWeather: FC<CompactDayWeatherProps> = ({ status, temperat
   return (
     <Container key={time.getTime()}>
       <Time>{formatTime(time)}</Time>
-      <WeatherIcon as={getWeatherIcon(status)} />
-      <Temperature>{temperature}°</Temperature>
+      <WeatherIcon as={getWeatherIcon(status, isDay(time) ? 'day' : 'night')} />
+      {temperature && <Temperature>{temperature.toFixed()}°</Temperature>}
     </Container>
   );
 };
@@ -46,5 +48,5 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 `;

@@ -1,25 +1,15 @@
 import styled from '@emotion/styled';
 import { CompactDayWeather } from 'components/weather/CompactDayWeather';
 import { format, isToday, isTomorrow, isYesterday } from 'date-fns';
+import { HourlyWeatherData } from 'lib/api/weather';
 import { getWeatherIcon } from 'lib/utils/weather';
 import { FC } from 'react';
 
 interface DayWeatherProps {
-  weather: {
-    date: Date;
-    temperature: number;
-    status: string;
-  };
-  detailedWeather: TempDayWeather;
+  weather: HourlyWeatherData[];
   showDetailed: boolean;
   onClick: () => void;
 }
-
-type TempDayWeather = Array<{
-  time: Date;
-  temperature: number;
-  status: string;
-}>
 
 const formatDate = (date: Date) => {
   if (isToday(date)) return 'Today';
@@ -28,26 +18,35 @@ const formatDate = (date: Date) => {
   return format(date, 'cccc');
 }
 
-export const DayWeather: FC<DayWeatherProps> = ({ weather, detailedWeather, showDetailed, onClick }) => (
-  <DayContainer key={weather.date.getTime()} onClick={onClick}>
-    <QuickWeather>
-      <DayInfo>
-        <DayName>{formatDate(weather.date)}</DayName>
-        <Date>{format(weather.date, 'dd MMM')}</Date>
-      </DayInfo>
-      <Temperature>{weather.temperature}°</Temperature>
-      <WeatherIcon as={getWeatherIcon(weather.status)} />
-    </QuickWeather>
+export const DayWeather: FC<DayWeatherProps> = ({ weather, showDetailed, onClick }) => {
+  const averageTemperature = weather.reduce((sum, { apparent_temperature }) => sum + (apparent_temperature ?? 0), 0) / weather.length;
 
-    {showDetailed && (
-      <DetailedWeather>
-        {detailedWeather.map(({ time, status, temperature }) => (
-          <CompactDayWeather status={status} temperature={temperature} time={time} key={time.getTime()} />
-        ))}
-      </DetailedWeather>
-    )}
-  </DayContainer>
-);
+  return (
+    <DayContainer onClick={onClick}>
+      <QuickWeather>
+        <DayInfo>
+          <DayName>{formatDate(new Date(weather[0].time))}</DayName>
+          <DayDate>{format(new Date(weather[0].time), 'dd MMM')}</DayDate>
+        </DayInfo>
+        <Temperature>{averageTemperature.toFixed()}°</Temperature>
+        <WeatherIcon as={getWeatherIcon(weather[0].weathercode)} />
+      </QuickWeather>
+  
+      {showDetailed && (
+        <DetailedWeather>
+          {weather.map(({ apparent_temperature, weathercode, time }) => (
+            <CompactDayWeather
+              status={weathercode}
+              temperature={apparent_temperature}
+              time={new Date(time)}
+              key={time}
+            />
+          ))}
+        </DetailedWeather>
+      )}
+    </DayContainer>
+  );
+}
 
 const DayContainer = styled.div`
   display: flex;
@@ -56,7 +55,7 @@ const DayContainer = styled.div`
   cursor: pointer;
 `;
 
-const Date = styled.p`
+const DayDate = styled.p`
   margin: 0;
   font-size: 16px;
   color: ${props => props.theme.colors.textAlt};
