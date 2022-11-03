@@ -20,8 +20,6 @@ import Image from 'next/future/image';
 import { AppPage } from 'pages/_app';
 import { useState } from 'react';
 
-
-
 const Dashboard: AppPage = () => {
   const { data: session } = useSession();  
   const [query, setQuery] = useState('');
@@ -32,15 +30,18 @@ const Dashboard: AppPage = () => {
     end: endOfWeek(new Date())
   });
 
-  const todayWeather = useQuery(weatherQuery(coords));
+  const todayWeather = useQuery({ ...weatherQuery(coords), enabled: !!coords });
   const currentWeather = transformCurrentWeather(todayWeather.data);
   const weatherUnits = todayWeather.data?.hourly_units;
 
-  const weeklyWeather = useQuery(weatherQuery(coords ? {
-    ...coords,
-    start_date: format(selectedWeekDates.start, 'yyyy-MM-dd'),
-    end_date: format(selectedWeekDates.end, 'yyyy-MM-dd')
-  } : undefined));
+  const weeklyWeather = useQuery({
+    ...weatherQuery(coords ? {
+      ...coords,
+      start_date: format(selectedWeekDates.start, 'yyyy-MM-dd'),
+      end_date: format(selectedWeekDates.end, 'yyyy-MM-dd'),
+    } : undefined),
+    enabled: !!coords
+  });
 
   const handleSaveLocation = () => {
     if (!locationText || !coords) return;
