@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import LogoIcon from 'assets/logo.svg'
+import { ReactComponent as LogoIcon } from 'assets/logo.svg'
 import styled from '@emotion/styled';
 import { Styleable } from 'styles/styles';
 

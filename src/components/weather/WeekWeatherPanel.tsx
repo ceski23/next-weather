@@ -1,8 +1,8 @@
 import styled from '@emotion/styled';
 import { FC, useState } from 'react';
 import { Styleable } from 'styles/styles';
-import LeftChevronIcon from 'assets/chevron-left.svg';
-import RightChevronIcon from 'assets/chevron-right.svg';
+import { ReactComponent as LeftChevronIcon } from 'assets/chevron-left.svg';
+import { ReactComponent as RightChevronIcon } from 'assets/chevron-right.svg';
 import { addDays, endOfWeek, format, isAfter, isBefore, isSameDay, isSameMonth, isThisWeek, startOfWeek, subDays } from 'date-fns';
 import { DayWeather } from 'components/weather/DayWeather';
 import { HourlyWeatherData } from 'lib/api/weather';

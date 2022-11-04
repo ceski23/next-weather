@@ -1,9 +1,9 @@
 import styled from '@emotion/styled';
 import { FC } from 'react';
 import { MapPin } from 'react-feather';
-import Humidity from '@bybas/weather-icons/production/line/svg/humidity.svg';
-import Wind from '@bybas/weather-icons/production/line/svg/wind.svg';
-import Barometer from '@bybas/weather-icons/production/line/svg/barometer.svg';
+import { ReactComponent as Humidity } from '@bybas/weather-icons/production/line/svg/humidity.svg';
+import { ReactComponent as Wind } from '@bybas/weather-icons/production/line/svg/wind.svg';
+import { ReactComponent as Barometer } from '@bybas/weather-icons/production/line/svg/barometer.svg';
 import { formatDistanceToNow } from 'date-fns';
 import bg from 'assets/morning_background.png';
 import Skeleton from 'react-loading-skeleton';

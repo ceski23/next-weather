@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import ThunderstormIcon from '@bybas/weather-icons/production/fill/svg/thunderstorms-rain.svg';
+import { ReactComponent as ThunderstormIcon } from '@bybas/weather-icons/production/fill/svg/thunderstorms-rain.svg';
 import { useRouter } from 'next/router';
 import styled from '@emotion/styled';
 import Button from 'components/common/Button';

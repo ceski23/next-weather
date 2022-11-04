@@ -3,36 +3,36 @@ import { HourlyWeatherData, WeatherCode, WeatherResponse } from 'lib/api/weather
 import { assertUnreachable } from 'lib/utils/types';
 import { isThisHour, format } from 'date-fns';
 
-import ClearDay from '@bybas/weather-icons/production/fill/svg/clear-day.svg';
-import ClearNight from '@bybas/weather-icons/production/fill/svg/clear-night.svg';
-import PartlyCloudyDay from '@bybas/weather-icons/production/fill/svg/partly-cloudy-day.svg';
-import PartlyCloudyNight from '@bybas/weather-icons/production/fill/svg/partly-cloudy-night.svg';
-import OvercastDay from '@bybas/weather-icons/production/fill/svg/overcast-day.svg';
-import OvercastNight from '@bybas/weather-icons/production/fill/svg/overcast-night.svg';
-import FogDay from '@bybas/weather-icons/production/fill/svg/fog-day.svg';
-import FogNight from '@bybas/weather-icons/production/fill/svg/fog-night.svg';
-import Drizzle from '@bybas/weather-icons/production/fill/svg/drizzle.svg';
-import ExtremeDrizzle from '@bybas/weather-icons/production/fill/svg/extreme-drizzle.svg';
-import OvercastDrizzle from '@bybas/weather-icons/production/fill/svg/overcast-drizzle.svg';
-import OvercastSleet from '@bybas/weather-icons/production/fill/svg/overcast-sleet.svg';
-import Sleet from '@bybas/weather-icons/production/fill/svg/sleet.svg';
-import PartlyCloudyDayRain from '@bybas/weather-icons/production/fill/svg/partly-cloudy-day-rain.svg';
-import PartlyCloudyNightRain from '@bybas/weather-icons/production/fill/svg/partly-cloudy-night-rain.svg';
-import OvercastDayRain from '@bybas/weather-icons/production/fill/svg/overcast-day-rain.svg';
-import OvercastNightRain from '@bybas/weather-icons/production/fill/svg/overcast-night-rain.svg';
-import ExtremeDayRain from '@bybas/weather-icons/production/fill/svg/extreme-day-rain.svg';
-import ExtremeNightRain from '@bybas/weather-icons/production/fill/svg/extreme-night-rain.svg';
-import PartlyCloudyDaySnow from '@bybas/weather-icons/production/fill/svg/partly-cloudy-day-snow.svg';
-import PartlyCloudyNightSnow from '@bybas/weather-icons/production/fill/svg/partly-cloudy-night-snow.svg';
-import OvercastDaySnow from '@bybas/weather-icons/production/fill/svg/overcast-day-snow.svg';
-import OvercastNightSnow from '@bybas/weather-icons/production/fill/svg/overcast-night-snow.svg';
-import ExtremeDaySnow from '@bybas/weather-icons/production/fill/svg/extreme-day-snow.svg';
-import ExtremeNightSnow from '@bybas/weather-icons/production/fill/svg/extreme-night-snow.svg';
-import Hail from '@bybas/weather-icons/production/fill/svg/hail.svg';
-import Thunderstorms from '@bybas/weather-icons/production/fill/svg/thunderstorms.svg';
-import ThunderstormsSnow from '@bybas/weather-icons/production/fill/svg/thunderstorms-snow.svg';
-import ThunderstormsExtremeSnow from '@bybas/weather-icons/production/fill/svg/thunderstorms-extreme-snow.svg';
-import NotAvailable from '@bybas/weather-icons/production/fill/svg/not-available.svg';
+import clearDay from '@bybas/weather-icons/production/fill/svg/clear-day.svg';
+import clearNight from '@bybas/weather-icons/production/fill/svg/clear-night.svg';
+import partlyCloudyDay from '@bybas/weather-icons/production/fill/svg/partly-cloudy-day.svg';
+import partlyCloudyNight from '@bybas/weather-icons/production/fill/svg/partly-cloudy-night.svg';
+import overcastDay from '@bybas/weather-icons/production/fill/svg/overcast-day.svg';
+import overcastNight from '@bybas/weather-icons/production/fill/svg/overcast-night.svg';
+import fogDay from '@bybas/weather-icons/production/fill/svg/fog-day.svg';
+import fogNight from '@bybas/weather-icons/production/fill/svg/fog-night.svg';
+import drizzle from '@bybas/weather-icons/production/fill/svg/drizzle.svg';
+import extremeDrizzle from '@bybas/weather-icons/production/fill/svg/extreme-drizzle.svg';
+import overcastDrizzle from '@bybas/weather-icons/production/fill/svg/overcast-drizzle.svg';
+import overcastSleet from '@bybas/weather-icons/production/fill/svg/overcast-sleet.svg';
+import sleet from '@bybas/weather-icons/production/fill/svg/sleet.svg';
+import partlyCloudyDayRain from '@bybas/weather-icons/production/fill/svg/partly-cloudy-day-rain.svg';
+import partlyCloudyNightRain from '@bybas/weather-icons/production/fill/svg/partly-cloudy-night-rain.svg';
+import overcastDayRain from '@bybas/weather-icons/production/fill/svg/overcast-day-rain.svg';
+import overcastNightRain from '@bybas/weather-icons/production/fill/svg/overcast-night-rain.svg';
+import extremeDayRain from '@bybas/weather-icons/production/fill/svg/extreme-day-rain.svg';
+import extremeNightRain from '@bybas/weather-icons/production/fill/svg/extreme-night-rain.svg';
+import partlyCloudyDaySnow from '@bybas/weather-icons/production/fill/svg/partly-cloudy-day-snow.svg';
+import partlyCloudyNightSnow from '@bybas/weather-icons/production/fill/svg/partly-cloudy-night-snow.svg';
+import overcastDaySnow from '@bybas/weather-icons/production/fill/svg/overcast-day-snow.svg';
+import overcastNightSnow from '@bybas/weather-icons/production/fill/svg/overcast-night-snow.svg';
+import extremeDaySnow from '@bybas/weather-icons/production/fill/svg/extreme-day-snow.svg';
+import extremeNightSnow from '@bybas/weather-icons/production/fill/svg/extreme-night-snow.svg';
+import hail from '@bybas/weather-icons/production/fill/svg/hail.svg';
+import thunderstorms from '@bybas/weather-icons/production/fill/svg/thunderstorms.svg';
+import thunderstormsSnow from '@bybas/weather-icons/production/fill/svg/thunderstorms-snow.svg';
+import thunderstormsExtremeSnow from '@bybas/weather-icons/production/fill/svg/thunderstorms-extreme-snow.svg';
+import notAvailable from '@bybas/weather-icons/production/fill/svg/not-available.svg';
 
 export const formatLocationText = (address?: ReverseSearchResponse['address']) => {
   if (!address) return undefined;
@@ -56,72 +56,72 @@ export const getWeatherIcon = (weatherCode: WeatherCode | null, variant: 'day' |
   switch (weatherCode) {
     case WeatherCode.CLEAR_SKY: 
     case WeatherCode.MAINLY_CLEAR:
-      return variant === 'day' ? ClearDay : ClearNight;
+      return variant === 'day' ? clearDay : clearNight;
 
     case WeatherCode.PARTLY_CLOUDY:
-      return variant === 'day' ? PartlyCloudyDay : PartlyCloudyNight;
+      return variant === 'day' ? partlyCloudyDay : partlyCloudyNight;
 
     case WeatherCode.OVERCAST:
-      return variant === 'day' ? OvercastDay : OvercastNight;
+      return variant === 'day' ? overcastDay : overcastNight;
 
     case WeatherCode.FOG:
     case WeatherCode.RIME_FOG:
-      return variant === 'day' ? FogDay : FogNight;
+      return variant === 'day' ? fogDay : fogNight;
 
     case WeatherCode.LIGHT_DRIZZLE:
-      return Drizzle;
+      return drizzle;
 
     case WeatherCode.MODERATE_DRIZZLE:
-      return OvercastDrizzle;
+      return overcastDrizzle;
 
     case WeatherCode.DENSE_DRIZZLE:
-      return ExtremeDrizzle;
+      return extremeDrizzle;
 
     case WeatherCode.LIGHT_FREEZING_RAIN:
     case WeatherCode.LIGHT_FREEZING_DRIZZLE:
-      return Sleet;
+      return sleet;
 
     case WeatherCode.HEAVY_FREEZING_RAIN:
     case WeatherCode.DENSE_FREEZING_DRIZZLE:
-      return OvercastSleet;
+      return overcastSleet;
 
     case WeatherCode.SLIGHT_RAIN_SHOWERS:
     case WeatherCode.SLIGHT_RAIN:
-      return variant === 'day' ? PartlyCloudyDayRain : PartlyCloudyNightRain;
+      return variant === 'day' ? partlyCloudyDayRain : partlyCloudyNightRain;
 
     case WeatherCode.MODERATE_RAIN_SHOWERS:
     case WeatherCode.MODERATE_RAIN:
-      return variant === 'day' ? OvercastDayRain : OvercastNightRain;
+      return variant === 'day' ? overcastDayRain : overcastNightRain;
 
     case WeatherCode.VIOLENT_RAIN_SHOWERS:
     case WeatherCode.HEAVY_RAIN:
-      return variant === 'day' ? ExtremeDayRain : ExtremeNightRain;
+      return variant === 'day' ? extremeDayRain : extremeNightRain;
 
     case WeatherCode.SLIGHT_SNOW_SHOWERS:
     case WeatherCode.SLIGHT_SNOW:
-      return variant === 'day' ? PartlyCloudyDaySnow : PartlyCloudyNightSnow;
+      return variant === 'day' ? partlyCloudyDaySnow : partlyCloudyNightSnow;
 
     case WeatherCode.MODERATE_SNOW:
-      return variant === 'day' ? OvercastDaySnow : OvercastNightSnow;
+      return variant === 'day' ? overcastDaySnow : overcastNightSnow;
 
     case WeatherCode.HEAVY_SNOW_SHOWERS:
     case WeatherCode.HEAVY_SNOW:
-      return variant === 'day' ? ExtremeDaySnow : ExtremeNightSnow;
+      return variant === 'day' ? extremeDaySnow : extremeNightSnow;
 
     case WeatherCode.SNOW_GRAINS:
-      return Hail;
+      return hail;
 
     case WeatherCode.THUNDERSTORM:
-      return Thunderstorms;
+      return thunderstorms;
 
     case WeatherCode.THUNDERSTORM_WITH_SLIGHT_HAIL:
-      return ThunderstormsSnow;
+      return thunderstormsSnow;
 
     case WeatherCode.THUNDERSTORM_WITH_HEAVY_HAIL:
-      return ThunderstormsExtremeSnow;
+      return thunderstormsExtremeSnow;
 
     case null:
-      return NotAvailable;
+      return notAvailable;
   }
 
   return assertUnreachable(weatherCode, 'Not all symbols are checked');

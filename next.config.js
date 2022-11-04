@@ -10,7 +10,8 @@ const nextConfig = {
   },
   images: {
     domains: ['avatars.githubusercontent.com']
-  }
+  },
+  fileLoader: true,
 }
 
 module.exports = withSvgr(nextConfig);

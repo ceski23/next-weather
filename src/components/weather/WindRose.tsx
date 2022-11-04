@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import WindRoseBase from 'assets/wind_rose.svg'
+import { ReactComponent as WindRoseBase } from 'assets/wind_rose.svg'
 import { FC } from 'react';
 
 interface WindRoseProps {

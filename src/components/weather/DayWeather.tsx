@@ -2,7 +2,8 @@ import styled from '@emotion/styled';
 import { CompactDayWeather } from 'components/weather/CompactDayWeather';
 import { format, isToday, isTomorrow, isYesterday } from 'date-fns';
 import { HourlyWeatherData } from 'lib/api/weather';
-import { getWeatherIcon } from 'lib/utils/weather';
+import { getWeatherDescription, getWeatherIcon } from 'lib/utils/weather';
+import Image from 'next/image';
 import { FC } from 'react';
 
 interface DayWeatherProps {
@@ -29,7 +30,12 @@ export const DayWeather: FC<DayWeatherProps> = ({ weather, showDetailed, onClick
           <DayDate>{format(new Date(weather[0].time), 'dd MMM')}</DayDate>
         </DayInfo>
         <Temperature>{averageTemperature.toFixed()}°</Temperature>
-        <WeatherIcon as={getWeatherIcon(weather[0].weathercode)} />
+        <Image
+          width={70}
+          height={70}
+          src={getWeatherIcon(weather[0].weathercode)}
+          alt={getWeatherDescription(weather[0].weathercode)}
+        />
       </QuickWeather>
   
       {showDetailed && (
@@ -81,11 +87,6 @@ const Temperature = styled.p`
   font-weight: 500;
   flex: 1;
   text-align: center;
-`;
-
-const WeatherIcon = styled.svg`
-  width: 70px;
-  height: 70px;
 `;
 
 const DetailedWeather = styled.div`

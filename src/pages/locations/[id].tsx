@@ -3,9 +3,10 @@ import { dehydrate, QueryClient, useQuery } from '@tanstack/react-query';
 import WeatherCard from 'components/weather/WeatherCard';
 import { weatherQuery } from 'lib/api/queries/weather';
 import prisma from 'lib/prisma';
-import { getWeatherDescription, transformCurrentWeather } from 'lib/utils/weather';
+import { getWeatherDescription, getWeatherIcon, transformCurrentWeather } from 'lib/utils/weather';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { unstable_getServerSession } from 'next-auth/next';
+import Head from 'next/head';
 import { authOptions } from 'pages/api/auth/[...nextauth]';
 import { AppPage } from 'pages/_app';
 import { ParsedUrlQuery } from 'querystring';
@@ -58,6 +59,15 @@ const SavedLocationPage: AppPage<InferGetServerSidePropsType<typeof getServerSid
 
   return (
     <>
+      <Head>
+        {currentWeather && (
+          <>
+            <title key="title">{currentWeather.apparent_temperature}°C - {location.name} - NextWeather</title>
+            <link rel="icon" type="image/svg+xml" href={getWeatherIcon(currentWeather.weathercode)} key="favicon" />
+          </>
+        )}
+      </Head>
+
       {weather.status === 'loading' && <WeatherCard.Placeholder />}
       {currentWeather && weatherUnits && (
         <WeatherCard

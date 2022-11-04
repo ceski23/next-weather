@@ -2,7 +2,8 @@ import styled from '@emotion/styled';
 import { format, isThisHour } from 'date-fns';
 import { WeatherCode } from 'lib/api/weather';
 import { isDay } from 'lib/utils/date';
-import { getWeatherIcon } from 'lib/utils/weather';
+import { getWeatherDescription, getWeatherIcon } from 'lib/utils/weather';
+import Image from 'next/image';
 import { FC } from 'react';
 
 interface CompactDayWeatherProps {
@@ -20,7 +21,12 @@ export const CompactDayWeather: FC<CompactDayWeatherProps> = ({ status, temperat
   return (
     <Container key={time.getTime()}>
       <Time>{formatTime(time)}</Time>
-      <WeatherIcon as={getWeatherIcon(status, isDay(time) ? 'day' : 'night')} />
+      <Image
+        width={50}
+        height={50}
+        src={getWeatherIcon(status, isDay(time) ? 'day' : 'night')}
+        alt={getWeatherDescription(status)}
+      />
       {temperature && <Temperature>{temperature.toFixed()}°</Temperature>}
     </Container>
   );
@@ -37,11 +43,6 @@ const Temperature = styled.p`
   margin: 0;
   font-weight: 500;
   text-align: center;
-`;
-
-const WeatherIcon = styled.svg`
-  width: 50px;
-  height: 50px;
 `;
 
 const Container = styled.div`
