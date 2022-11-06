@@ -12,20 +12,24 @@ import { addDays, endOfWeek, format, startOfWeek, subDays } from 'date-fns';
 import { saveLocationMutation } from 'lib/api/queries/locations';
 import { weatherQuery } from 'lib/api/queries/weather';
 import { useLocation } from 'lib/hooks/location';
+import { useQueryParam } from 'lib/hooks/query';
 import { calcProgress } from 'lib/utils/math';
 import { mediaQueryUp } from 'lib/utils/styles';
 import { getWeatherDescription, getWeatherIcon, transformCurrentWeather, transformWeeklyWeather } from 'lib/utils/weather';
 import { useSession } from 'next-auth/react';
 import Image from 'next/future/image';
 import Head from 'next/head';
-import { useRouter } from 'next/router';
 import { AppPage } from 'pages/_app';
 import { useState } from 'react';
+import { useDebounce } from 'react-use';
 
 const Dashboard: AppPage = () => {
-  const { data: session } = useSession();  
-  const router = useRouter();
-  const query = router.query.location?.toString() ?? '';
+  const { data: session } = useSession();
+
+  const [inputValue, setInputValue] = useState('');
+  const [query, setQuery] = useQueryParam('location', setInputValue);
+  useDebounce(() => setQuery(inputValue), 500, [inputValue]);
+
   const { coords, locationText } = useLocation(query);
   const { mutate: saveLocation } = useMutation(saveLocationMutation());
   const [selectedWeekDates, setSelectedWeekDates] = useState({
@@ -45,11 +49,6 @@ const Dashboard: AppPage = () => {
     } : undefined),
     enabled: !!coords
   });
-
-  const handleQueryChange = (location: string) => {
-    if (location.length === 0) router.push({ query: undefined });
-    else router.push({ query: { location } });
-  }
 
   const handleSaveLocation = () => {
     if (!locationText || !coords) return;
@@ -74,7 +73,7 @@ const Dashboard: AppPage = () => {
 
       <MainColumn>
         <Header>
-          <SearchInput onDebouncedChange={handleQueryChange} key={query} defaultValue={query} placeholder="Search for a place..." />
+          <SearchInput onChange={setInputValue} value={inputValue} placeholder="Search for a place..." />
           {session?.user?.image && session.user.name && (
             <Avatar src={session.user.image} alt={session.user.name} width={45} height={45} />
           )}

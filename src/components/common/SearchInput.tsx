@@ -1,36 +1,22 @@
 import styled from '@emotion/styled';
-import { ChangeEvent, ComponentProps, FC, useMemo, useState } from 'react';
+import { ComponentProps, FC } from 'react';
 import { Search } from 'react-feather';
-import debounce from 'lodash.debounce';
 
-interface SearchInputProps extends ComponentProps<'input'> {
-  onDebouncedChange: (value: string) => void;
+interface SearchInputProps extends Omit<ComponentProps<'input'>, 'onChange'> {
+  onChange: (value: string) => void;
 }
 
-const SearchInput: FC<SearchInputProps> = ({ onDebouncedChange, defaultValue, ...props }) => {
-  const [value, setValue] = useState(defaultValue);
-  const debouncedChangeHandler = useMemo(() => (
-    debounce(onDebouncedChange, 500)
-  ), [onDebouncedChange]);
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.currentTarget.value;
-    setValue(value);
-    debouncedChangeHandler(value);
-  }
-
-  return (
-    <SearchWrapper>
-      <SearchIcon />
-      <Input
-        type='search'
-        value={value}
-        onChange={handleChange}
-        {...props}
-      />
-    </SearchWrapper>
-  );
-};
+const SearchInput: FC<SearchInputProps> = ({ onChange, value, ...props }) => (
+  <SearchWrapper>
+    <SearchIcon />
+    <Input
+      type='search'
+      value={value}
+      onChange={e => onChange(e.currentTarget.value)}
+      {...props}
+    />
+  </SearchWrapper>
+);
 
 export default SearchInput;
 
